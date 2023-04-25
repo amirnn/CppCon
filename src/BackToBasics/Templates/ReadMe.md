@@ -172,16 +172,298 @@ An entity is one of these things in C++:
 - namespace
 - pack
 
-An entity gets a name. A name is the use of an identifier that denotes an entity (or label).
-Every name that denotes an entity is introduced by a declaration. A declaration introduces one or more names into translation unit. Note that, a declaration can and may *re-introduce* a name into a translation unit.
+An entity gets a name. A name is the use of an identifier that denotes an entity (or label). Every name that denotes an entity is introduced by a *declaration*. 
+
+A **declaration** introduces one or more *names* into the *translation unit*. Note that, a declaration can and may *re-introduce* a name into a translation unit.
+
+A **definition** is a declaration that fully defines the entity being introduced.
+
+A **variable** is an entity introduced by the declaration of an object or of a reference other than a non-static data member. In other words,
+in C++ non-static data member (Class Field) is not referred as a *variable*.
+
+Every declaration is also a definition, unless:
+
+- It is a function declaration without a corresponding definition of the body
+    ```c++
+    int doSomething(int);
+    ```
+- It is a parameter declaration in a function declaration that is not a definition
+  ```c++
+  int doSomething(int const& param)
+  ```
+- It is a declaration of a class name without a corresponding definition
+    ```c++
+    class vector;
+    ```
+- It is a template parameter
+    ```c++
+    // T and N are type entities introduced by template declaration.
+    template<class T, size_t N>
+    class vector;
+    ```
+- It is a typedef declaration
+- It is a using declaration
+  ```c++
+  // Introduces UInt name intro translation unit.
+  using UInt = size_t; 
+  ```
+- It contains the extern specifier
+  ```c++
+  // Explicitly, marks a name and sets its linking to external linking.
+  extern int doSomething(int param);
+  ```
+- And a few other cases...
+
+The set of definitions is a proper subset of the set of declarations. Look at the slides pages 36 and 37.
+  
+## Some notes on extern keyword
+
+The **extern** keyword, marks the linkage of an entity to be external. That means we tell the compiler to not worry about the definition of the entity if it is not in the current translation unit, since the definition will be in other translation units and that will be resolved at linking stage.
+```c++
+// non-const global variable.
+// specifies that the variable or function is defined in another translation unit.
+// The extern must be applied in all files except the one where the variable is defined.
+extern int i;
+
+// const global variable.
+// specifies that the variable has external linkage. 
+// The extern must be applied to all declarations in all files.
+extern const int i;
+```
+## One Definition Rule (ODR)
+
+A given translation unit can contain at most one definition of any:
+- variable
+- function
+- class type
+- enumeration type
+- template
+- default argument for a parameter for a function in a given scope;
+  [Read this regarding default arguments](https://en.cppreference.com/w/cpp/language/default_arguments).
+- default template argument
+
+There may be multiple declarations, but there can only be one definition.
+
+A program must contain exactly one definition of every non-inline variable
+or function that is used in the program
+
+- Multiple declarations are OK, but only one definition
+- For an inline variable or an inline function, a definition is required in every
+translation unit that uses it
+- inline was originally a suggested optimization made to the compiler
+- It has now evolved to mean **"multiple definitions are permitted"**
+- Exactly one definition of a class must appear in any translation unit that uses
+it in such a way that the class must be complete
+- The same rules for inline variables and functions also apply to templates
+
+Advices on observing ODR:
+- For an **inline entity** (variable or function) that get used in a translation unit, make sure it is defined at least once somewhere in that translation unit
+- For a **non-inline, non-template** entity that gets used, make sure it is
+defined exactly once in across all translation units
+- For a **template entity**, define it in a header file, include the header where
+the thing is needed, and let the toolchain decide where it is defined
+- Except in rare circumstances where finer control is required
+
+## Template Parameters and Template Arguments
+
+- **Template parameters** are the names that come after the *template keyword*
+in a *template declaration*. 
+- **Template arguments** are the concrete items substituted for template
+parameters to create a template **specialization**.
+
+```c++
+// T1 and T2 are Template Parameters
+template<class T1, class T2>
+struct pair
+{
+    T1 first;
+    T2 second;
+    ...
+};
+// T is a Template Parameter
+template<class T>
+T const& max(T const& a, T const& b)
+{ ... }
+---
+// string, double, and double, are Template Arguments
+pair<string, double> my_pair;
+
+double d = max<double>(0, 1);
+
+string s1 = ...;
+string s2 = ...;
+string s3 = max(s1, s2);
+
+```
+
+### Template Parameters
+
+Template parameters come in three flavors
+- Type parameters
+- Non-type template parameters (NTTPs)
+- Template-template parameters
+
+**Type parameters**
+- **Most common**
+- Declared using the **class** or **typename** keywords
+```c++
+template<class T1, class T2> struct pair;
+
+template<typename T1, typename T2> struct pair;
+
+template<class T> T max(T const& a, T const& b);
+
+template<typename T> T max(T const& a, T const& b);
+```
+
+**Non-Type Template Parameters (NTTPs)**
+Template parameters don't have to be types:
+```c++
+template<class T, size_t N>
+class Array
+{
+    T m_data[N]
+    ...
+};
+Array<foobar, 10> some_foobars;
+
+---
+
+template<int Incr>
+int IncrementBy(int val)
+{
+    return val + Incr;
+}
+int x = ...;
+int y = IncrementBy<42>(x);
+```
+NTTPs denote constant values that can be determined at compile or link time, and their type must be
+- An integer or enumeration type (most common)
+- A pointer or pointer-to-member type
+- std::nullptr_t
+- And a couple of other things...
+
+**Template-Template Parameters**
+Template parameters can themselves be templates
+- Placeholders for class or alias templates
+- Declared like class templates, but only the class and typename keywords can be used
+```c++
+#include <vector>
+#include <list>
+
+template<class T, template<class U, class A = std::allocator<U>> class C>
+struct Adaptor
+{
+    C<T> my_data;
+    void push_back(T const& t) { my_data.push_back(t); }
+};
+Adaptor<int, std::vector> a1;
+Adaptor<long, std::list> a2;
+a1.push_back(0);
+a2.push_back(1);
+```
+
+**Default Template Arguments**
+Template parameters can have default arguments
+```c++
+template<class T, class Alloc = allocator<T>>
+class vector {...};
+
+template<class T, size_t N = 32>
+class Array {...}
+
+template<class T, template<class U, class A = allocator<U>> class C = vector>
+struct Adaptor {...};
+
+vector<double> vec; //- std::vector<double, std::allocator<double>>
+Array<long> arr; //- Array<long, 32>
+Adaptor<int> adp; //- Adaptor<int, std::vector<int, std::allocator<int>>>
+```
+Default arguments must occur at the end of the list for class, alias, and variable templates
+```c++
+template<class T0, class T1=int, class T2=int, class T3=int>
+class quad; //- OK
+template<class T0, class T1=int, class T2=int, class T3=int, class T4>
+class quint; //- Error
+```
+Function templates don't have this requirement. Template type deduction can determine the template parameters
+```c++
+template<class RT=void, class T>
+RT* address_of(T& value)
+{
+    return static_cast<RT*>(&value);
+};
+```
+**Substituting Template Arguments for Template Parameters**
+- Template parameters are the names that come after the template keyword in a template declaration
+- Template arguments are the concrete items substituted for template parameters to create a template specialization
 
 ## Specialization vs Instantiation
+- The concrete entity resulting from substituting template arguments for template parameters is a specialization
+- These entities are named, and the name has the syntactic form template-name<argument-list>
+- This name is formally called a template-id
+```c++
+template<class T1, class T2>
+struct pair
+{
+    T1 first;
+    T2 second;
+    ...
+};
 
+template<class T>
+T const& max(T const& a, T const& b)
+{ ... }
+---
+
+pair<string, double> my_pair;
+double d = max<double>(0, 1);
+string s1 = ...;
+string s2 = ...;
+string s3 = max(s1, s2);
+```
+From the earlier example
+- pair is a class template
+- max is a function template
+From the earlier example
+```c++
+    pair<string, double>
+    max<double>
+    max<string>
+```
+are the names of specializations.
+
+Q: How do we get from template to specialization?
+- A1: Instantiation
+- A2: Explicit specialization
+
+### Instantiation
+
+- At some point we'll want to use the recipe and make a thing
+- Most of the time the compiler knows how to cook the recipe for us
+- t various times, the compiler will substitute concrete (actual) template arguments for the template parameters used by a template
+- Sometimes this substitution is tentative
+- The compiler checks to see if a possible substitution could be valid
+- Sometimes the result of this substitution is used to create a specialization
+
+Template instantiation occurs when the compiler substitutes template arguments for template parameters in order to define an entity
+- i.e., generate a specialization of some template
+- The specialization from instantiating a class template is sometimes called
+(informally) an instantiated class
+- Likewise for the other template categories (instantiated function, etc.)
+- These are also informally called **instantiations**
+
+Template instantiation can occur in two possible ways:
+
+- **Implicitly**
+- **Explicitly**
 
 
 ## References
 
-CppCon2021 Back to Basics: Templates by Bob Steagall. [Video](https://www.youtube.com/watch?v=XN319NYEOcE&list=PLHTh1InhhwT4TJaHBVWzvBOYhp27UO7mI&index=13),
+Slides are also included in the respective folder in this repository.
+
+- CppCon2021 Back to Basics: Templates by Bob Steagall. [Video](https://www.youtube.com/watch?v=XN319NYEOcE&list=PLHTh1InhhwT4TJaHBVWzvBOYhp27UO7mI&index=13),
 [Slides](https://github.com/CppCon/CppCon2021/tree/main/Presentations)
 
-Slides are also included in the respective folder in this repository.
+- [Cpp Reference Website](https://en.cppreference.com/w/cpp/language/)
