@@ -440,8 +440,8 @@ Q: How do we get from template to specialization?
 ### Instantiation
 
 - At some point we'll want to use the recipe and make a thing
-- Most of the time the compiler knows how to cook the recipe for us
-- t various times, the compiler will substitute concrete (actual) template arguments for the template parameters used by a template
+  - Most of the time the compiler knows how to cook the recipe for us
+- At various times, the compiler will **substitute** concrete (actual) template arguments for the template parameters used by a template
 - Sometimes this substitution is tentative
 - The compiler checks to see if a possible substitution could be valid
 - Sometimes the result of this substitution is used to create a specialization
