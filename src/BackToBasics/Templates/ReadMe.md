@@ -63,7 +63,7 @@ iterator vector<T, Alloc>::insert(const_iterator pos, InputIter first, InputIter
 ```
 ### Alias Templates (C++11)
 
-Here we user template and then using keywords.
+Here we use the template and then the using keywords.
 
 ```c++
 template<class T>
