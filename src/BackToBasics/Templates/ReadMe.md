@@ -448,8 +448,7 @@ Q: How do we get from template to specialization?
 
 **Template instantiation** occurs when the compiler substitutes template arguments for template parameters in order to define an entity
 - i.e., generate a specialization of some template
-- The specialization from instantiating a class template is sometimes called
-(informally) an instantiated class
+- The specialization from instantiating a class template is sometimes called (informally) **an instantiated class**
 - Likewise for the other template categories (instantiated function, etc.)
 - These are also informally called **instantiations**
 
@@ -458,6 +457,94 @@ Template instantiation can occur in two possible ways:
 - **Implicitly**
 - **Explicitly**
 
+Remember: Instantiation is a (->) Specialization.
+
+### Implicit Instantiation
+
+Performed by the Compiler by substituting template arguments for parameters. It is automatic and needs no guidance from the code. It is called Implicit, On-Demand, or Automatic instantiation.
+The compiler decides **where**, **when**, and how much of the specialization to create. For class templates, implicit instantiation doesn't necessarily instantiate all the members of the class. The compiler might not generate non-virtual member functions or static data members.
+
+Implicit Instantiation is a Instantiation which in turn is a Specialization.
+
+### Explicit Instantiation
+It is used when we want to control the where and when of instantiation.
+```c++
+//- Source file my_foo.cpp
+template class vector<foo>; //- Definition
+template class vector<foo, my_allocator<foo>>; //- Definition
+template void swap<foo>(foo&, foo&); //- Definition
+template void swap(bar&, bar&); //- Definition
+```
+AS you can see, we write template keyword and then move the < > to the end after the name of the class or function name (entity). This is called explicit instantiation and when used on class templates, it instantiates all the class members.
+
+However, individual member functions can be explicitly instantiated.
+```c++
+template void vector<foo, my_allocator<foo>>::push_back(foo const&); //- Definition
+```
+
+For each template instantiated in a program, there must be exactly one
+definition of the corresponding specialization. If we explicitly instantiate a template in one translation unit, we must not explicitly
+instantiate in another translation unit. To solve this problem we use the **extern** keyword.
+```c++
+//- Source file my_foo.cpp
+template class vector<foo>; //- Definition
+template class vector<foo, my_allocator<foo>>; //- Definition
+template void swap<foo>(foo&, foo&); //- Definition
+template void swap(bar&, bar&); //- Definition
+---
+//- Header file my_foo.h
+extern template class vector<foo>; //- Declared, not defined
+extern template class vector<foo, my_allocator<foo>>; //- Declared, not defined
+extern template void swap<foo>(foo&, foo&); //- Declared, not defined
+extern template void swap(bar&, bar&); //- Declared, not defined
+```
+
+Question can we explicitly instantiate a template entity, in a header file? If yes should we used inline keyword?
+
+Explicit Instantiation is an Instantiation which in turn is a Specialization.
+
+## Explicit Specialization
+
+When we want to customize behavior of a template for a special situation. Since, in some situations the template won't work as we expect it. So, we provide our own implementation. We do this by providing our own template arguments and substituting them with template parameters.
+
+```c++
+template<class T>
+T const& min(T const& a, T const& b)
+{
+    return (a < b) ? a : b;
+}
+// We do this
+template<>
+char const* min(char const* pa, char const* pb) //- Full specialization; this is only
+{ // valid if a function template min
+    return (strcmp(pa, pb) < 0) ? pa : pb; // has already been declared
+}
+char const* p0 = "hello";
+char const* p1 = "world";
+char const* pr = min(p0, p1); //- What's the answer?
+```
+It's probably more common to use explicit specialization with class templates. Note the notation here. We still use < > after the template keyword and provide arguments for parameters.
+
+An explicit specialization is valid only if a primary template has been declared.
+
+```c++
+template<class T>
+struct my_less //- Primary template
+{
+    bool operator()(T const& a, T const& b) const {
+        return (a < b) ? a : b;
+    }
+};
+
+template<>
+struct my_less<char const*> //- Full specialization
+{
+    bool operator()(char const* pa, char const* pb) const {
+        return strcmp(pa, pb) < 0;
+    }
+}
+map<char const*, int, my_less<char const*>> m1;
+```
 
 ## References
 
