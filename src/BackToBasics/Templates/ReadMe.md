@@ -164,11 +164,11 @@ An entity is one of these things in C++:
 - structured binding
 - function
 - enumerator
-- type
+- type (using myType = someType; myType is a type alias. class someType; someType is a type)
 - class member
 - bit-field
-- template
-- template specialization
+- **template**
+- **template specialization**
 - namespace
 - pack
 
@@ -178,8 +178,8 @@ A **declaration** introduces one or more *names* into the *translation unit*. No
 
 A **definition** is a declaration that fully defines the entity being introduced.
 
-A **variable** is an entity introduced by the declaration of an object or of a reference other than a non-static data member. In other words,
-in C++ non-static data member (Class Field) is not referred as a *variable*.
+A **variable** is an entity introduced by the declaration of an *object* or of a *reference* other than a non-static data member. In other words,
+in C++ non-static data member (Class Field) is **not** referred as a *variable*.
 
 Every declaration is also a definition, unless:
 
@@ -193,7 +193,7 @@ Every declaration is also a definition, unless:
   ```
 - It is a declaration of a class name without a corresponding definition
     ```c++
-    class vector;
+    class vector; //forward declaration
     ```
 - It is a template parameter
     ```c++
@@ -233,7 +233,7 @@ extern const int i;
 ## One Definition Rule (ODR)
 
 A given translation unit can contain at most one definition of any:
-- variable
+- **variable**
 - function
 - class type
 - enumeration type
@@ -244,21 +244,39 @@ A given translation unit can contain at most one definition of any:
 
 There may be multiple declarations, but there can only be one definition.
 
-A program must contain exactly one definition of every non-inline variable
-or function that is used in the program
+A program must contain exactly one definition of every non-inline variable or function that is used in the program
 
-- Multiple declarations are OK, but only one definition
-- For an inline variable or an inline function, a definition is required in every
-translation unit that uses it
+- Multiple declarations are OK, but **only one definition** for an inline **variable** or an inline function, a definition is required in every translation unit that uses it
 - inline was originally a suggested optimization made to the compiler
 - It has now evolved to mean **"multiple definitions are permitted"**
-- Exactly one definition of a class must appear in any translation unit that uses
-it in such a way that the class must be complete
+- **Exactly one definition of a class must appear in any translation unit** that uses it in such a way that the class must be complete
 - **The same rules for inline variables and functions also apply to templates**
 
-The last point is really important. Again, inline states that it is okay to have different definitions for an entity. It is pertaining the applying to the templates! Hence, it is permissible to have different definitions for templates. (What does this mean? "Definitions for templates"? Does it mean Specialization? Yes.)
+The last point is really important. Again, the inline keyword states that, it is permitted to have different definitions for an entity. The last item is pertaining and applying to the templates! Hence, it is permissible to have different definitions for templates. What does this mean? "Definitions for templates"? Does it mean Specialization? **No!**
+**The template definition.** is not template specialization.
+The template definition just like a class definition can be included and be present at various translation units. But, the template specialization can be present only in one translation unit.
 
-So in other words, is it okay to have different specialization for a template? The answer is yes according to the last item.
+So in other words, is it okay to have different definitions for a template? The answer is yes according to the last item. This is just like having multiple class type definitions in different translation units.
+
+Note that the members (also functions) in a class are **inline** by default.
+That is why including header files that contain classes with inner class body member definitions is permitted. If we implement (define) class members outside the class body in the same header file, we would lose the default inline keyword and we would get compile errors if we had included the header file in multiple translation units. This is due to ODR.
+
+A template definition starts with template keyword and creates a template entity.
+```c++
+// This is a definition
+template<class T, size_t N>
+class vector {...}
+// this one as well
+template<class T>
+T add(T const& a, T const& b){
+    return a + b;
+}
+----
+// This is a specialization (Implicit Instantiation)
+auto result = add<double>(5.0 + 6.0)
+```
+
+
 
 Advices on observing ODR:
 - For an **inline entity** (variable or function) that get used in a translation unit, make sure it is defined at least once somewhere in that translation unit
@@ -438,8 +456,8 @@ From the earlier example
 are the names of specializations. These are also called **template-id**.
 
 Q: How do we get from template to specialization?
-- A1: Instantiation
-- A2: Explicit specialization
+- A1: Instantiation (Implicit Specialization)
+- A2: Explicit Specialization
 
 ### Instantiation
 
@@ -486,8 +504,7 @@ However, individual member functions can be explicitly instantiated.
 template void vector<foo, my_allocator<foo>>::push_back(foo const&); //- Definition
 ```
 
-For each template instantiated in a program, there must be exactly one
-definition of the corresponding specialization. If we explicitly instantiate a template in one translation unit, we must not explicitly
+**For each template instantiated in a program, there must be exactly one definition of the corresponding specialization.** If we explicitly instantiate a template in one translation unit, we must not explicitly
 instantiate in another translation unit. To solve this problem we use the **extern** keyword.
 ```c++
 //- Source file my_foo.cpp
