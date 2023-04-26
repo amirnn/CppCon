@@ -1,7 +1,5 @@
 # src
 
-add_s
-
 add_executable(main main.cc)
 
 install(TARGETS main DESTINATION "."

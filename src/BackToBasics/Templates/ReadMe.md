@@ -446,7 +446,7 @@ Q: How do we get from template to specialization?
 - The compiler checks to see if a possible substitution could be valid
 - Sometimes the result of this substitution is used to create a specialization
 
-Template instantiation occurs when the compiler substitutes template arguments for template parameters in order to define an entity
+**Template instantiation** occurs when the compiler substitutes template arguments for template parameters in order to define an entity
 - i.e., generate a specialization of some template
 - The specialization from instantiating a class template is sometimes called
 (informally) an instantiated class

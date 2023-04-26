@@ -1,3 +1,3 @@
 #Templates
 
-add_executable(templates templates.cc)
+add_executable(templates src/templates.cc)

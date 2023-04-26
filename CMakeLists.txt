@@ -9,4 +9,5 @@ set(EXPORT_COMPILE_COMMANDS True)
 include("conan/dependencies.cmake")
 
 add_subdirectory("src/BackToBasics/Templates")
+add_subdirectory("src/DesignPatterns/")
 add_subdirectory("src/main")

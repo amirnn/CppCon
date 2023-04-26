@@ -1,4 +1,6 @@
 {
     "version": 6,
-    "include": ["./ConanPresets.json"]
+    "include": [
+        "./ConanPresets.json"
+    ]
 }

@@ -3,5 +3,5 @@
 
 int main() {
   using std::cout, std::endl;
-  cout << "This is a test."s << endl;
+  cout << "This is a test." << endl;
 }
