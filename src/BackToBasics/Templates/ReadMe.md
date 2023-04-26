@@ -254,7 +254,11 @@ translation unit that uses it
 - It has now evolved to mean **"multiple definitions are permitted"**
 - Exactly one definition of a class must appear in any translation unit that uses
 it in such a way that the class must be complete
-- The same rules for inline variables and functions also apply to templates
+- **The same rules for inline variables and functions also apply to templates**
+
+The last point is really important. Again, inline states that it is okay to have different definitions for an entity. It is pertaining the applying to the templates! Hence, it is permissible to have different definitions for templates. (What does this mean? "Definitions for templates"? Does it mean Specialization? Yes.)
+
+So in other words, is it okay to have different specialization for a template? The answer is yes according to the last item.
 
 Advices on observing ODR:
 - For an **inline entity** (variable or function) that get used in a translation unit, make sure it is defined at least once somewhere in that translation unit
@@ -401,7 +405,7 @@ RT* address_of(T& value)
 ## Specialization vs Instantiation
 - The concrete entity resulting from substituting template arguments for template parameters is a specialization
 - These entities are named, and the name has the syntactic form template-name<argument-list>
-- This name is formally called a template-id
+- This name is formally called a **template-id**
 ```c++
 template<class T1, class T2>
 struct pair
@@ -431,7 +435,7 @@ From the earlier example
     max<double>
     max<string>
 ```
-are the names of specializations.
+are the names of specializations. These are also called **template-id**.
 
 Q: How do we get from template to specialization?
 - A1: Instantiation
